@@ -7,13 +7,24 @@ requireAuth();
 
 $currentUser = getCurrentUser();
 
-// Filters
-$filters = [
-    'username' => $_GET['username'] ?? '',
-    'action_type' => $_GET['action_type'] ?? '',
-    'date_from' => $_GET['date_from'] ?? '',
-    'date_to' => $_GET['date_to'] ?? ''
-];
+// Filters - only include non-empty values
+$filters = [];
+
+if (!empty($_GET['username'])) {
+    $filters['username'] = trim($_GET['username']);
+}
+
+if (!empty($_GET['action_type'])) {
+    $filters['action_type'] = $_GET['action_type'];
+}
+
+if (!empty($_GET['date_from'])) {
+    $filters['date_from'] = $_GET['date_from'];
+}
+
+if (!empty($_GET['date_to'])) {
+    $filters['date_to'] = $_GET['date_to'];
+}
 
 // Pagination
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
@@ -24,6 +35,13 @@ $logs = getCsvLogs($perPage, $offset, $filters);
 $totalLogs = getCsvLogsCount($filters);
 $totalPages = ceil($totalLogs / $perPage);
 $stats = getCsvLogsStats();
+
+// Build filter query string for pagination
+$filterQuery = '';
+if (!empty($filters['username'])) $filterQuery .= '&username=' . urlencode($filters['username']);
+if (!empty($filters['action_type'])) $filterQuery .= '&action_type=' . urlencode($filters['action_type']);
+if (!empty($filters['date_from'])) $filterQuery .= '&date_from=' . urlencode($filters['date_from']);
+if (!empty($filters['date_to'])) $filterQuery .= '&date_to=' . urlencode($filters['date_to']);
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -40,7 +58,7 @@ $stats = getCsvLogsStats();
                 <h1><?= APP_NAME ?></h1>
                 <p>سجلات CSV - إجمالي <?= number_format($totalLogs) ?> سجل</p>
             </div>
-            <div style="display: flex; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <?php if (isAdmin()): ?>
                 <a href="/csv-upload.php" class="btn btn-primary">⬆️ رفع CSV</a>
                 <?php endif; ?>
@@ -89,45 +107,55 @@ $stats = getCsvLogsStats();
         <!-- Filters -->
         <div class="card">
             <h3 class="card-title">🔍 فلترة البحث</h3>
+            
+            <?php if (!empty($filters)): ?>
+            <div style="margin-bottom: 1rem; padding: 0.75rem; background-color: var(--bg-tertiary); border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-secondary);">📊 عدد النتائج: <strong style="color: var(--accent);"><?= number_format($totalLogs) ?></strong></span>
+                <a href="/csv-logs.php" class="btn btn-secondary" style="padding: 0.5rem 1rem;">❌ إلغاء الفلترة</a>
+            </div>
+            <?php endif; ?>
+
             <form method="GET" action="" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="username">اسم المستخدم</label>
-                    <input type="text" id="username" name="username" class="form-control" value="<?= htmlspecialchars($filters['username']) ?>" placeholder="بحث بالاسم...">
+                    <input type="text" id="username" name="username" class="form-control" value="<?= htmlspecialchars($filters['username'] ?? '') ?>" placeholder="بحث بالاسم...">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="action_type">نوع الإجراء</label>
                     <select id="action_type" name="action_type" class="form-control">
                         <option value="">الكل</option>
-                        <option value="login" <?= $filters['action_type'] === 'login' ? 'selected' : '' ?>>تسجيل دخول</option>
-                        <option value="logout" <?= $filters['action_type'] === 'logout' ? 'selected' : '' ?>>تسجيل خروج</option>
-                        <option value="auth_failed" <?= $filters['action_type'] === 'auth_failed' ? 'selected' : '' ?>>فشل المصادقة</option>
-                        <option value="authenticated" <?= $filters['action_type'] === 'authenticated' ? 'selected' : '' ?>>مصادقة</option>
-                        <option value="connected" <?= $filters['action_type'] === 'connected' ? 'selected' : '' ?>>متصل</option>
-                        <option value="disconnected" <?= $filters['action_type'] === 'disconnected' ? 'selected' : '' ?>>منفصل</option>
+                        <option value="login" <?= ($filters['action_type'] ?? '') === 'login' ? 'selected' : '' ?>>تسجيل دخول</option>
+                        <option value="logout" <?= ($filters['action_type'] ?? '') === 'logout' ? 'selected' : '' ?>>تسجيل خروج</option>
+                        <option value="auth_failed" <?= ($filters['action_type'] ?? '') === 'auth_failed' ? 'selected' : '' ?>>فشل المصادقة</option>
+                        <option value="authenticated" <?= ($filters['action_type'] ?? '') === 'authenticated' ? 'selected' : '' ?>>مصادقة</option>
+                        <option value="connected" <?= ($filters['action_type'] ?? '') === 'connected' ? 'selected' : '' ?>>متصل</option>
+                        <option value="disconnected" <?= ($filters['action_type'] ?? '') === 'disconnected' ? 'selected' : '' ?>>منفصل</option>
                     </select>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="date_from">من تاريخ</label>
-                    <input type="datetime-local" id="date_from" name="date_from" class="form-control" value="<?= htmlspecialchars($filters['date_from']) ?>">
+                    <input type="datetime-local" id="date_from" name="date_from" class="form-control" value="<?= htmlspecialchars($filters['date_from'] ?? '') ?>">
+                    <small style="color: var(--text-secondary); font-size: 0.8rem; display: block; margin-top: 0.25rem;">اختياري</small>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 0;">
                     <label for="date_to">إلى تاريخ</label>
-                    <input type="datetime-local" id="date_to" name="date_to" class="form-control" value="<?= htmlspecialchars($filters['date_to']) ?>">
+                    <input type="datetime-local" id="date_to" name="date_to" class="form-control" value="<?= htmlspecialchars($filters['date_to'] ?? '') ?>">
+                    <small style="color: var(--text-secondary); font-size: 0.8rem; display: block; margin-top: 0.25rem;">اختياري</small>
                 </div>
 
                 <div style="display: flex; gap: 0.5rem; align-items: end;">
                     <button type="submit" class="btn btn-primary">🔍 بحث</button>
-                    <a href="/csv-logs.php" class="btn btn-secondary">🔄 إعادة تعيين</a>
+                    <a href="/csv-logs.php" class="btn btn-secondary">🔄 إعادة</a>
                 </div>
             </form>
         </div>
 
         <!-- Logs Table -->
         <div class="card">
-            <h3 class="card-title">📝 سجلات PPPoE</h3>
+            <h3 class="card-title">📝 سجلات PPPoE (<?= number_format($totalLogs) ?>)</h3>
             <div class="table-container">
                 <table>
                     <thead>
@@ -144,7 +172,7 @@ $stats = getCsvLogsStats();
                         <?php if (empty($logs)): ?>
                         <tr>
                             <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                                لا توجد سجلات
+                                لا توجد سجلات <?= !empty($filters) ? 'تطابق الفلترة' : '' ?>
                             </td>
                         </tr>
                         <?php else: ?>
@@ -195,7 +223,7 @@ $stats = getCsvLogsStats();
             <?php if ($totalPages > 1): ?>
             <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1.5rem;">
                 <?php if ($page > 1): ?>
-                <a href="?page=<?= $page - 1 ?><?= !empty($filters['username']) ? '&username=' . urlencode($filters['username']) : '' ?><?= !empty($filters['action_type']) ? '&action_type=' . urlencode($filters['action_type']) : '' ?>" class="btn btn-secondary">← السابق</a>
+                <a href="?page=<?= $page - 1 ?><?= $filterQuery ?>" class="btn btn-secondary">← السابق</a>
                 <?php endif; ?>
                 
                 <span style="color: var(--text-secondary);">
@@ -203,7 +231,7 @@ $stats = getCsvLogsStats();
                 </span>
                 
                 <?php if ($page < $totalPages): ?>
-                <a href="?page=<?= $page + 1 ?><?= !empty($filters['username']) ? '&username=' . urlencode($filters['username']) : '' ?><?= !empty($filters['action_type']) ? '&action_type=' . urlencode($filters['action_type']) : '' ?>" class="btn btn-secondary">التالي →</a>
+                <a href="?page=<?= $page + 1 ?><?= $filterQuery ?>" class="btn btn-secondary">التالي →</a>
                 <?php endif; ?>
             </div>
             <?php endif; ?>
