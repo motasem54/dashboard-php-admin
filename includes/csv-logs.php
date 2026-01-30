@@ -150,12 +150,12 @@ function getCsvLogs($limit = 100, $offset = 0, $filters = []) {
     
     if (!empty($filters['date_from'])) {
         $where[] = 'timestamp >= ?';
-        $params[] = $filters['date_from'];
+        $params[] = $filters['date_from'] . ':00';
     }
     
     if (!empty($filters['date_to'])) {
         $where[] = 'timestamp <= ?';
-        $params[] = $filters['date_to'];
+        $params[] = $filters['date_to'] . ':59';
     }
     
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
@@ -191,17 +191,20 @@ function getCsvLogsCount($filters = []) {
     
     if (!empty($filters['date_from'])) {
         $where[] = 'timestamp >= ?';
-        $params[] = $filters['date_from'];
+        $params[] = $filters['date_from'] . ':00';
     }
     
     if (!empty($filters['date_to'])) {
         $where[] = 'timestamp <= ?';
-        $params[] = $filters['date_to'];
+        $params[] = $filters['date_to'] . ':59';
     }
     
     $whereClause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+    $sql = "SELECT COUNT(*) FROM csv_logs {$whereClause}";
     
-    $stmt = $conn->query("SELECT COUNT(*) FROM csv_logs {$whereClause}");
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    
     return $stmt->fetchColumn();
 }
 
