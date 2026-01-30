@@ -11,6 +11,16 @@ $users = getAllUsers();
 $logs = getLogs(50);
 $stats = getLogStats();
 $userCount = getUserCount();
+
+// Get CSV logs count if available
+$csvLogsCount = 0;
+try {
+    require_once 'includes/csv-logs.php';
+    $csvStats = getCsvLogsStats();
+    $csvLogsCount = $csvStats['total'] ?? 0;
+} catch (Exception $e) {
+    // CSV logs not available
+}
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -28,7 +38,8 @@ $userCount = getUserCount();
                 <h1><?= APP_NAME ?></h1>
                 <p>مرحباً <strong><?= htmlspecialchars($currentUser['username']) ?></strong></p>
             </div>
-            <div style="display: flex; gap: 1rem;">
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="/csv-logs.php" class="btn btn-secondary">📊 سجلات CSV <?= $csvLogsCount > 0 ? '(' . number_format($csvLogsCount) . ')' : '' ?></a>
                 <a href="/profile.php" class="btn btn-secondary">👤 الملف الشخصي</a>
                 <?php if (isAdmin()): ?>
                 <a href="/users.php" class="btn btn-secondary">👥 المستخدمون</a>
@@ -75,6 +86,19 @@ $userCount = getUserCount();
                 </div>
             </div>
         </div>
+
+        <?php if ($csvLogsCount > 0): ?>
+        <!-- CSV Logs Card -->
+        <div class="card" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); border: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.25rem;">📊 سجلات CSV متاحة</h3>
+                    <p style="margin: 0; color: rgba(255, 255, 255, 0.9);">تم استيراد <?= number_format($csvLogsCount) ?> سجل من ملفات CSV</p>
+                </div>
+                <a href="/csv-logs.php" class="btn btn-primary" style="background-color: white; color: #1e3a8a;">عرض السجلات →</a>
+            </div>
+        </div>
+        <?php endif; ?>
 
         <!-- Tabs -->
         <div class="tabs">
