@@ -28,7 +28,14 @@ $userCount = getUserCount();
                 <h1><?= APP_NAME ?></h1>
                 <p>مرحباً <strong><?= htmlspecialchars($currentUser['username']) ?></strong></p>
             </div>
-            <a href="/logout.php" class="btn btn-secondary">تسجيل الخروج</a>
+            <div style="display: flex; gap: 1rem;">
+                <a href="/profile.php" class="btn btn-secondary">👤 الملف الشخصي</a>
+                <?php if (isAdmin()): ?>
+                <a href="/users.php" class="btn btn-secondary">👥 المستخدمون</a>
+                <a href="/settings.php" class="btn btn-secondary">⚙️ الإعدادات</a>
+                <?php endif; ?>
+                <a href="/logout.php" class="btn btn-danger">تسجيل الخروج</a>
+            </div>
         </div>
     </header>
 
@@ -77,7 +84,12 @@ $userCount = getUserCount();
 
         <!-- Users Tab -->
         <div id="users-tab" class="card">
-            <h3 class="card-title">جدول المستخدمين</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 class="card-title" style="margin-bottom: 0;">جدول المستخدمين</h3>
+                <?php if (isAdmin()): ?>
+                <a href="/user-add.php" class="btn btn-primary">➕ إضافة مستخدم</a>
+                <?php endif; ?>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>

@@ -13,7 +13,8 @@ Admin Dashboard built with pure PHP and MySQL featuring secure authentication an
   - XSS protection
 
 - 👥 **User Management** - إدارة المستخدمين
-  - Users table with role-based access
+  - Add, edit, delete users
+  - Role-based access (Admin/User)
   - Real-time statistics
   - User activity tracking
 
@@ -21,6 +22,18 @@ Admin Dashboard built with pure PHP and MySQL featuring secure authentication an
   - Comprehensive activity logging
   - Login/logout tracking
   - IP address and user agent recording
+  - Action filtering and search
+
+- 👤 **User Profile** - الملف الشخصي
+  - View profile information
+  - Change password
+  - Account details
+
+- ⚙️ **System Settings** - إعدادات النظام
+  - System statistics
+  - Database information
+  - Quick actions panel
+  - Application info
 
 - 🎨 **Modern Dark Theme** - ثيم داكن عصري
   - Professional dark color scheme
@@ -82,28 +95,7 @@ define('DB_PASS', 'your_password');
 define('DB_NAME', 'dashboard_db');
 ```
 
-### 4. Web Server Setup
-
-#### Apache
-Make sure `.htaccess` is in the root directory and `mod_rewrite` is enabled.
-
-#### Nginx
-Add this to your server block:
-
-```nginx
-location / {
-    try_files $uri $uri/ /index.php?$query_string;
-}
-
-location ~ \.php$ {
-    fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-    fastcgi_index index.php;
-    include fastcgi_params;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-}
-```
-
-### 5. Access the Dashboard
+### 4. Access the Dashboard
 
 Open your browser and navigate to:
 ```
@@ -118,6 +110,22 @@ Password: admin123
 ```
 
 **⚠️ مهم | Important**: Change the default password after first login!
+
+## 📊 Available Pages
+
+### Public Pages
+- **login.php** - Login page
+- **logout.php** - Logout handler
+
+### User Pages (Requires Authentication)
+- **dashboard.php** - Main dashboard with statistics
+- **profile.php** - User profile and password change
+
+### Admin Pages (Requires Admin Role)
+- **users.php** - User management (list, delete)
+- **user-add.php** - Add new user
+- **user-edit.php** - Edit existing user
+- **settings.php** - System settings and statistics
 
 ## 📁 Project Structure
 
@@ -136,7 +144,12 @@ dashboard-php-admin/
 ├── login.php              # Login page
 ├── logout.php             # Logout handler
 ├── dashboard.php          # Main dashboard
-├── index.php              # Entry point (redirects to login)
+├── profile.php            # User profile
+├── users.php              # User management
+├── user-add.php           # Add user form
+├── user-edit.php          # Edit user form
+├── settings.php           # System settings
+├── index.php              # Entry point
 ├── database.sql           # Database schema
 ├── .htaccess              # Apache configuration
 └── README.md
@@ -154,9 +167,9 @@ dashboard-php-admin/
 - User ID
 - Username
 - Email address
-- Role (Admin/User)
+- Role (Admin/User) with badges
 - Account creation date
-- Role badges with color coding
+- Actions (Edit/Delete) for admins
 
 ### Data Logs Table
 - Log ID
@@ -166,6 +179,20 @@ dashboard-php-admin/
 - IP address
 - Full timestamp
 
+### User Profile
+- View account information
+- Change password securely
+- Account creation and update dates
+- Role display
+
+### System Settings (Admin Only)
+- Database size and statistics
+- Total users and logs count
+- Recent activity (24h, 7 days)
+- PHP version and timezone
+- Database tables information
+- Quick action links
+
 ## 🔒 Security Features
 
 - **Password Hashing**: Using PHP's `password_hash()` with bcrypt
@@ -174,6 +201,7 @@ dashboard-php-admin/
 - **Session Security**: HTTP-only cookies, secure session handling
 - **CSRF Protection**: Can be added (not included by default)
 - **Input Validation**: Server-side validation
+- **Role-Based Access**: Admin and user roles
 
 ## 🎨 Customization
 
@@ -194,13 +222,12 @@ Edit `assets/css/style.css` and modify the CSS variables:
 
 Edit `config/database.php` to change database settings.
 
-### Adding New Users
+### Application Name
 
-You can add users directly in the database or create a registration page:
+Edit `config/init.php`:
 
 ```php
-require_once 'includes/users.php';
-createUser('username', 'email@example.com', 'password', 'user');
+define('APP_NAME', 'لوحة التحكم الإدارية');
 ```
 
 ## 📦 Deployment
@@ -254,18 +281,10 @@ createUser('username', 'email@example.com', 'password', 'user');
 - Check if `assets/css/style.css` is accessible
 - Verify correct path in HTML files
 
-## 🛣️ Roadmap
+### Permission Denied
 
-- [ ] User creation/editing UI
-- [ ] Password change functionality
-- [ ] Profile management
-- [ ] Advanced filtering and search
-- [ ] Pagination for large datasets
-- [ ] Export to CSV/Excel
-- [ ] Email notifications
-- [ ] Two-factor authentication
-- [ ] API endpoints
-- [ ] Multi-language support
+- Check file permissions (755 for directories, 644 for files)
+- Ensure web server user has access
 
 ## 📝 Database Schema
 
